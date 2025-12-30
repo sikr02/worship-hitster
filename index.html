@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Worship Hitster – TIDAL</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+#reader {
+  max-width: 300px;
+  margin: auto;
+  display: none;
+}
+
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 120px;
+  margin: 20px auto;
+  display: none;
+}
+
+iframe {
+  width: 100%;
+  height: 120px;
+  border: none;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #111;
+  z-index: 10;
+}
+
+.overlay-vertical {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 75%;     /* adjust until play button is visible */
+  height: 100%;
+  background: #111;
+  z-index: 10;
+  pointer-events: none; /* allows clicking play button */
+}
+
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin: 10px;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎵 Worship Hitster</h1>
+
+<button onclick="startScan()">📷 Scan</button>
+
+<div id="reader"></div>
+
+<div class="player-wrapper" id="playerWrapper">
+  <iframe id="tidalPlayer" allow="autoplay"></iframe>
+  <div class="overlay"></div>
+  <div class="overlay-vertical"></div>
+</div>
+
+<div>
+  <button onclick="stopSong()">⏹ Stop</button>
+</div>
+
+<script>
+let playerIframe = document.getElementById("tidalPlayer");
+let wrapper = document.getElementById("playerWrapper");
+let reader = document.getElementById("reader");
+
+// Create scanner once
+let qrScanner = new Html5Qrcode("reader");
+let scanning = false;
+
+function startScan() {
+  if (scanning) return; // already running
+  scanning = true;
+  reader.style.display = "block";
+
+  qrScanner.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 250 },
+    text => handleQr(text)
+  ).catch(err => {
+    console.error("QR Scanner start failed:", err);
+    scanning = false;
+  });
+}
+
+function handleQr(url) {
+  // Stop scanner and release camera
+  qrScanner.stop().then(() => {
+    scanning = false;
+    reader.style.display = "none";
+    loadTidal(url);
+  }).catch(err => console.error("Failed to stop scanner:", err));
+}
+
+function loadTidal(url) {
+  const trackId = url.split("/").pop();
+  playerIframe.src = `https://embed.tidal.com/tracks/${trackId}?autoplay=true`;
+  wrapper.style.display = "block";
+}
+
+function stopSong() {
+  playerIframe.src = "";
+  // Stop scanner and release camera
+  qrScanner.stop().then(() => {
+    scanning = false;
+    reader.style.display = "none";
+  }).catch(err => console.error("Failed to stop scanner:", err));
+}
+</script>
+
+</body>
+</html>
