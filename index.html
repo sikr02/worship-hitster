@@ -97,6 +97,7 @@ let scanning = false;
 function startScan() {
   if (scanning) return; // already running
   scanning = true;
+  playerIframe.src = "";
   reader.style.display = "block";
 
   qrScanner.start(
